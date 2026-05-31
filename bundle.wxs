@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Package Name="IsolationSIEM" 
+             Language="1033" 
+             Version="1.0.0" 
+             Manufacturer="Trinary Projects" 
+             UpgradeCode="D0267D61-16DD-4F22-A26C-1C0DC5FA17F5"
+             InstallerVersion="500">
+
+        <Property Id="ARPSYSTEMCOMPONENT" Value="1" />
+        <Property Id="ARPNOREMOVE" Value="1" />
+        <Property Id="ARPNOTWEAK" Value="1" />
+        <Property Id="ARPNOMODIFY" Value="1" />
+
+        <MediaTemplate EmbedCab="yes" MaximumCabinetSize="2000" />
+
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="IsolationSIEM">
+                <Directory Id="BINDIR" Name="bin" />
+                <Directory Id="VENDORDIR" Name="vendor" />
+            </Directory>
+        </StandardDirectory>
+
+        <ComponentGroup Id="ProductComponents" Directory="BINDIR">
+            <Component Id="ServyCLI" Guid="*">
+                <File Id="servy_cli_exe" Source="C:\IsolationSIEM\bin\servy-cli.exe" KeyPath="yes" />
+            </Component>
+            <Component Id="SIEMProducer" Guid="*">
+                <File Id="producer_exe" Source="C:\IsolationSIEM\bin\producer.exe" />
+            </Component>
+            <Component Id="SIEMProcessor" Guid="*">
+                <File Id="processor_exe" Source="C:\IsolationSIEM\bin\processor.exe" />
+            </Component>
+        </ComponentGroup>
+
+        <ComponentGroup Id="VendorHarvestedComponents" Directory="VENDORDIR">
+            <Files Include="C:\IsolationSIEM\vendor\**" />
+        </ComponentGroup>
+
+        <CustomAction Id="InstallElasticsearchService" 
+                      Directory="BINDIR" 
+                      ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; install --name=&quot;IsolationSIEM-Elasticsearch&quot; --path=&quot;[VENDORDIR]Elasticsearch\bin\elasticsearch.bat&quot; --startupDir=&quot;[VENDORDIR]Elasticsearch&quot; --security-descriptor=&quot;D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCLCSWLOCRRC;;;BA)&quot;" 
+                      Execute="deferred" Impersonate="no" Return="check" />
+
+        <CustomAction Id="InstallKafkaService" 
+                      Directory="BINDIR" 
+                      ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; install --name=&quot;IsolationSIEM-Kafka&quot; --path=&quot;[VENDORDIR]Kafka\bin\windows\kafka-server-start.bat&quot; --params=&quot;[VENDORDIR]Kafka\config\kraft\server.properties&quot; --deps=&quot;IsolationSIEM-Elasticsearch&quot;" 
+                      Execute="deferred" Impersonate="no" Return="check" />
+
+        <CustomAction Id="InstallKibanaService" 
+                      Directory="BINDIR" 
+                      ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; install --name=&quot;IsolationSIEM-Kibana&quot; --path=&quot;[VENDORDIR]Kibana\bin\kibana.bat&quot; --startupDir=&quot;[VENDORDIR]Kibana&quot; --deps=&quot;IsolationSIEM-Elasticsearch&quot;" 
+                      Execute="deferred" Impersonate="no" Return="check" />
+
+        <CustomAction Id="InstallOllamaService" 
+                      Directory="BINDIR" 
+                      ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; install --name=&quot;IsolationSIEM-Ollama&quot; --path=&quot;[VENDORDIR]ollama\ollama.exe&quot; --params=&quot;serve&quot; --startupDir=&quot;[VENDORDIR]ollama&quot; --env=&quot;OLLAMA_MODELS=[VENDORDIR]ollama\models&quot;" 
+                      Execute="deferred" Impersonate="no" Return="check" />
+
+        <CustomAction Id="InstallProducerService" 
+                      Directory="BINDIR" 
+                      ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; install --name=&quot;IsolationSIEM-Producer&quot; --path=&quot;[BINDIR]producer.exe&quot; --startupDir=&quot;[BINDIR]&quot; --deps=&quot;IsolationSIEM-Kafka&quot; --enableSizeRotation --rotationSize=10" 
+                      Execute="deferred" Impersonate="no" Return="check" />
+
+        <CustomAction Id="InstallProcessorService" 
+                      Directory="BINDIR" 
+                      ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; install --name=&quot;IsolationSIEM-Processor&quot; --path=&quot;[BINDIR]processor.exe&quot; --startupDir=&quot;[BINDIR]&quot; --deps=&quot;IsolationSIEM-Kafka;IsolationSIEM-Ollama&quot; --enableSizeRotation --rotationSize=10" 
+                      Execute="deferred" Impersonate="no" Return="check" />
+
+        <CustomAction Id="StartElasticsearchService" Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; start --name=&quot;IsolationSIEM-Elasticsearch&quot;" Execute="deferred" Impersonate="no" Return="asyncNoWait" />
+        <CustomAction Id="StartKafkaService"         Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; start --name=&quot;IsolationSIEM-Kafka&quot;"         Execute="deferred" Impersonate="no" Return="asyncNoWait" />
+        <CustomAction Id="StartKibanaService"        Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; start --name=&quot;IsolationSIEM-Kibana&quot;"        Execute="deferred" Impersonate="no" Return="asyncNoWait" />
+        <CustomAction Id="StartOllamaService"        Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; start --name=&quot;IsolationSIEM-Ollama&quot;"        Execute="deferred" Impersonate="no" Return="asyncNoWait" />
+        <CustomAction Id="StartProducerService"      Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; start --name=&quot;IsolationSIEM-Producer&quot;"      Execute="deferred" Impersonate="no" Return="asyncNoWait" />
+        <CustomAction Id="StartProcessorService"     Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; start --name=&quot;IsolationSIEM-Processor&quot;"     Execute="deferred" Impersonate="no" Return="asyncNoWait" />
+
+        <CustomAction Id="StopProcessorService"   Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; stop --name=&quot;IsolationSIEM-Processor&quot;"   Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="StopProducerService"    Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; stop --name=&quot;IsolationSIEM-Producer&quot;"    Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="StopOllamaService"      Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; stop --name=&quot;IsolationSIEM-Ollama&quot;"      Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="StopKibanaService"      Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; stop --name=&quot;IsolationSIEM-Kibana&quot;"      Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="StopKafkaService"       Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; stop --name=&quot;IsolationSIEM-Kafka&quot;"       Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="StopElasticsearchService" Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; stop --name=&quot;IsolationSIEM-Elasticsearch&quot;" Execute="deferred" Impersonate="no" Return="ignore" />
+
+        <CustomAction Id="UninstallProcessorService"     Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; uninstall --name=&quot;IsolationSIEM-Processor&quot;"     Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="UninstallProducerService"      Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; uninstall --name=&quot;IsolationSIEM-Producer&quot;"      Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="UninstallOllamaService"        Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; uninstall --name=&quot;IsolationSIEM-Ollama&quot;"        Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="UninstallKibanaService"        Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; uninstall --name=&quot;IsolationSIEM-Kibana&quot;"        Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="UninstallKafkaService"         Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; uninstall --name=&quot;IsolationSIEM-Kafka&quot;"         Execute="deferred" Impersonate="no" Return="ignore" />
+        <CustomAction Id="UninstallElasticsearchService" Directory="BINDIR" ExeCommand="&quot;[BINDIR]servy-cli.exe&quot; uninstall --name=&quot;IsolationSIEM-Elasticsearch&quot;" Execute="deferred" Impersonate="no" Return="ignore" />
+        
+        <InstallExecuteSequence>
+            <Custom Action="InstallElasticsearchService" Before="InstallKafkaService"       Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="InstallKafkaService"         Before="InstallKibanaService"      Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="InstallKibanaService"        Before="InstallOllamaService"      Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="InstallOllamaService"        Before="InstallProducerService"    Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="InstallProducerService"      Before="InstallProcessorService"   Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="InstallProcessorService"     Before="InstallFinalize"           Condition="NOT Installed AND NOT REMOVE" />
+
+            <Custom Action="StartElasticsearchService"   Before="StartKafkaService"         Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="StartKafkaService"           Before="StartKibanaService"        Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="StartKibanaService"          Before="StartOllamaService"        Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="StartOllamaService"          Before="StartProducerService"      Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="StartProducerService"        Before="StartProcessorService"     Condition="NOT Installed AND NOT REMOVE" />
+            <Custom Action="StartProcessorService"       Before="InstallFinalize"           Condition="NOT Installed AND NOT REMOVE" />
+
+            <Custom Action="StopProcessorService"        After="InstallInitialize"          Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="StopProducerService"         After="StopProcessorService"       Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="StopOllamaService"           After="StopProducerService"        Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="StopKibanaService"           After="StopOllamaService"          Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="StopKafkaService"            After="StopKibanaService"          Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="StopElasticsearchService"    After="StopKafkaService"           Condition="REMOVE=&quot;ALL&quot;" />
+
+            <Custom Action="UninstallProcessorService"   After="StopElasticsearchService"   Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="UninstallProducerService"    After="UninstallProcessorService"  Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="UninstallOllamaService"      After="UninstallProducerService"   Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="UninstallKibanaService"      After="UninstallOllamaService"     Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="UninstallKafkaService"       After="UninstallKibanaService"     Condition="REMOVE=&quot;ALL&quot;" />
+            <Custom Action="UninstallElasticsearchService" After="UninstallKafkaService"    Condition="REMOVE=&quot;ALL&quot;" />
+        </InstallExecuteSequence>
+
+        <Feature Id="MainApplication" Title="IsolationSIEM Service" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+            <ComponentGroupRef Id="VendorHarvestedComponents" />
+        </Feature>
+    </Package>
+</Wix>
