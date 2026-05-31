@@ -1,0 +1,9 @@
+Many organizations are trying to keep up with advancements in technology such as Artificial Intelligence and in a bid to do that, deploy new tools in their environment without proper insight and security. Along with the different tools and systems used, there is also the lack of adequate security in order to support them, creating a huge gap for Cyber-criminals to exploit and hide in plain sight.
+
+[Isolation Forest SIEM] is a singular, lightweight, agent-based SIEM tool designed to fix all of that. It's purpose in your environment is to Hunt, Scan, Consolidate, and Remediate all telemetry within your environment. It looks for security gaps that need to be plugged, Suspicious files or system behavior that wouldn't be caught by traditional security tools, and has the intelligence to classify suspicious events based on context provided to it for your specific environment and perform Semi-Autonomous Remediation.
+
+It consolidates all logs from different applications, operating systems, network events and uses real-time Artificial Intelligence and Machine Learning to pick out anomalous patterns faster than human operators and traditional security tools.
+
+It's meant for your organization and adapts to it. Combining the real-time data collection, machine learning, and pre-defined rules, it cuts the traditional adaptation time from weeks to months, down to hours to days. It learns patterns for your specific organization and works based on that instead of the traditional method of general behavior gathered from different companies in different industries.
+
+The context aware nature allows it to look at past events and correlate it with the current issue at hand, all whilst being able to explain why an event triggered a security action - Cutting down triaging time from hours to minutes.
