@@ -17,3 +17,12 @@ Machine Learning and Artificial Intelligence are required to take Isolation Fore
 For this inital trial, Isolation Forest will be fed real-time data from a SIEM running locally on a Windows machine and tracking activity and connections for that specific machine. While this is an incredibly limited scenario, it is meant to serve as a foundation before a more comprehensive Proof-Of-Concept is created. Once that is done, it can then be expanded into a more functioninal project/product.
 
 Please see OUTLINE.md for more details regarding the flow from start to end for this specific scenario.
+
+## Local inference runtime
+
+The Windows installers configure llama.cpp as a local sidecar service using `llama-server.exe`. Stage these files in the vendor tree before building the installer:
+
+- `vendor/llama.cpp/llama-server.exe` and any runtime DLLs required by that build
+- `vendor/models/default.gguf`, containing the selected GGUF model
+
+The service starts llama.cpp with the model path relative to its working directory and listens on `127.0.0.1:8080`. Inference clients should use llama.cpp's OpenAI-compatible API at `http://127.0.0.1:8080/v1`; this repository does not include processor/agent source code to update or a Go backend in which to embed llama.cpp through CGO. The model remains a separate asset and is included in the installer only when staged in the vendor tree.
